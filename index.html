@@ -2,362 +2,170 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trip Schedule 2026</title>
     
-    <!-- External Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- ical.js: Required to parse .ics files for FullCalendar -->
+    <!-- Core iCal Parser -->
     <script src="https://cdn.jsdelivr.net/npm/ical.js@1.5.0/build/ical.min.js"></script>
-    
-    <!-- FullCalendar Core: Standard calendar functionality -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-    
-    <!-- FullCalendar iCalendar Plugin: Connects FullCalendar to .ics feeds -->
+    <!-- Scheduler Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.10/index.global.min.js"></script>
+    <!-- iCalendar Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/icalendar@6.1.10/index.global.min.js"></script>
     
     <style>
-        :root {
-            --fc-button-bg-color: #2563eb;
-            --fc-event-bg-color: #3b82f6;
-            --fc-event-border-color: #2563eb;
-            --fc-list-event-hover-bg-color: #f8fafc;
-        }
-
-        /* Calendar Layout Tweaks */
-        .fc-view-harness { 
-            background: white; 
-            min-height: 600px; 
-        }
-        
-        /* Event Styling */
-        .fc-event { 
-            cursor: pointer; 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            font-size: 0.8rem; 
-            border: none !important;
-            transition: transform 0.1s ease;
-        }
-        .fc-event:hover {
-            transform: scale(1.02);
-            filter: brightness(1.1);
-        }
-
-        /* List View Styling (The "Schedule" view) */
-        .fc-list-event { cursor: pointer; }
-        .fc-list-day-cushion { background: #f1f5f9 !important; padding: 12px 20px !important; }
-        .fc-list-day-text { font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; }
-        .fc-list-event-title { font-weight: 600; color: #334155; }
-        
-        /* Loading Spinner */
-        .loader {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3b82f6;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
+        .fc { --fc-button-bg-color: #2563eb; --fc-event-bg-color: #3b82f6; --fc-border-color: #e2e8f0; }
+        .fc-view-harness { background: white; min-height: 650px; border-radius: 1rem; }
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #3b82f6; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Modal Backdrop */
-        #modal-overlay { 
-            display: none; 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(4px); 
-        }
-        
-        /* FullCalendar Typography overrides */
-        .fc-toolbar-title { 
-            font-size: 1.5rem !important; 
-            font-weight: 800 !important; 
-            color: #0f172a; 
-        }
-        .fc .fc-col-header-cell-cushion { 
-            font-size: 0.7rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.05em;
-            color: #94a3b8; 
-            padding: 12px 0;
-        }
+        .fc-resource-header { background: #f8fafc !important; font-weight: 800 !important; color: #475569 !important; text-transform: uppercase; font-size: 0.7rem; }
+        .fc-event { cursor: pointer; border: none !important; padding: 2px 4px; border-radius: 4px !important; }
+        /* Hide scrollbars but keep functionality */
+        .fc-scroller::-webkit-scrollbar { width: 4px; }
+        .fc-scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-12 text-slate-900">
+<body class="bg-slate-100 min-h-screen pb-12">
 
-    <div class="max-w-6xl mx-auto">
-        <!-- Dashboard Header -->
-        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div class="space-y-1">
-                <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 flex items-center gap-4">
-                    <div class="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
+    <div class="max-w-6xl mx-auto px-4 pt-8">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div>
+                <h1 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                    <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     Trip Schedule 2026
                 </h1>
-                <p class="text-slate-500 font-medium text-lg ml-1">Europe Expedition: June 25 – July 12</p>
+                <p id="status-text" class="text-slate-500 text-sm font-medium italic">Focused View: June 25 – July 12</p>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <button onclick="generateItinerary()" class="bg-indigo-600 text-white px-6 py-3 rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 flex items-center gap-2 font-bold transition-all active:scale-95">
-                    ✨ Generate AI Summary
-                </button>
-                <button onclick="refreshCalendar()" class="bg-white border border-slate-200 px-5 py-3 rounded-2xl shadow-sm hover:bg-slate-50 flex items-center gap-3 font-semibold text-slate-600 transition-all">
-                    <span id="load-icon">🔄</span>
+            <div class="flex flex-wrap gap-2">
+                <div class="inline-flex rounded-xl border bg-white p-1 shadow-sm">
+                    <button id="btn-month" onclick="changeView('dayGridMonth')" class="px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-slate-50">Month</button>
+                    <button id="btn-resource" onclick="changeView('resourceTimeGridDay')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm">Resources</button>
+                </div>
+                <button onclick="refreshCalendar()" class="bg-white border px-4 py-2 rounded-xl shadow-sm hover:bg-slate-50 text-slate-600 font-bold text-sm flex items-center gap-2">
                     <span id="load-spinner" class="loader hidden"></span>
-                    Sync
+                    <span>Sync</span>
                 </button>
+                <button onclick="toggleDebug()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold text-sm text-[10px]">DEBUG LOG</button>
             </div>
         </header>
 
-        <!-- Configuration & Tools Panel -->
-        <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
-            <!-- Calendar Source -->
-            <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-200/60">
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">iCloud Calendar Feed (.ics)</label>
-                <div class="flex gap-3">
-                    <input type="text" id="cal-url" 
-                        class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium" 
-                        value="https://p126-caldav.icloud.com/published/2/NDUxMTE5Mzc3NDUxMTE5My04_xu67XBifGeMipd_lo2obpZ8fwhiusLZcmcIo6S7HHzY0EIVLURkXfRFCVoZlw7JTyAh16NadTPmMHcNjmY">
-                    <button onclick="updateSource()" class="bg-slate-900 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95">Update</button>
-                </div>
-            </div>
+        <div id="debug-log" class="hidden mb-4 p-4 bg-slate-900 text-green-400 font-mono text-[10px] rounded-xl overflow-auto max-h-40"></div>
 
-            <!-- Focus Selector -->
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl border border-blue-100/50 flex flex-col justify-between">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+            <div class="flex flex-col gap-4">
                 <div>
-                    <label class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">📍 Focus Date</label>
-                    <select id="focus-view" onchange="changeFocus()" 
-                        class="w-full bg-white/80 border border-blue-200/50 rounded-2xl px-5 py-3 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-slate-700 mb-2">
-                        <option value="2026-06-22">Full Trip Start (June 22)</option>
-                        <option value="2026-06-25">Expedition Start (June 25)</option>
-                        <option value="2026-07-01">July Focus</option>
-                    </select>
-                </div>
-                <div class="flex gap-2">
-                   <input type="date" id="custom-focus" class="flex-1 bg-white border border-blue-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 outline-none" value="2026-06-22">
-                   <button onclick="gotoCustomDate()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700">Go</button>
-                </div>
-            </div>
-
-            <!-- View Mode Selector (Added for the requested view) -->
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200/60 flex flex-col justify-between">
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">🖥️ Display Mode</label>
-                    <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl">
-                        <button onclick="changeView('dayGridMonth')" id="btn-grid" class="view-btn bg-white shadow-sm text-blue-600 font-bold py-2 rounded-xl text-xs transition-all">Grid</button>
-                        <button onclick="changeView('listMonth')" id="btn-list" class="view-btn text-slate-500 font-bold py-2 rounded-xl text-xs transition-all hover:bg-white/50">Schedule</button>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">iCloud Calendar Link (.ics)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="cal-url" 
+                            class="flex-1 bg-slate-50 border rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
+                            value="https://p126-caldav.icloud.com/published/2/NDUxMTE5Mzc3NDUxMTE5My04_xu67XBifGeMipd_lo2obpZ8fwhiusLZcmcIo6S7HHzY0EIVLURkXfRFCVoZlw7JTyAh16NadTPmMHcNjmY">
+                        <button onclick="updateSource()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700">Update</button>
                     </div>
                 </div>
-                <p class="text-[10px] text-slate-400 font-medium leading-tight mt-4">Switch to 'Schedule' for the vertical timeline view.</p>
             </div>
-        </section>
+        </div>
 
-        <!-- Main Calendar View -->
-        <main class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-200 overflow-hidden mb-12">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden min-h-[600px]">
             <div id="calendar" class="p-2"></div>
-        </main>
-
-        <!-- Legend -->
-        <footer class="flex justify-center border-t border-slate-200 pt-8">
-            <div class="flex items-center gap-8 text-sm text-slate-400 font-bold tracking-wide uppercase">
-                <div class="flex items-center gap-3">
-                    <span class="w-4 h-4 bg-blue-500 rounded-full shadow-lg shadow-blue-200"></span>
-                    <span>Trip Events</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="w-4 h-4 bg-slate-200 rounded-full"></span>
-                    <span>Personal</span>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Event Details Drawer/Modal -->
-    <div id="modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-6" onclick="closeModal()">
-        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-10 transform transition-all" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-start mb-8">
-                <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
-                    <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <button onclick="closeModal()" class="text-slate-300 hover:text-slate-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <h2 id="m-title" class="text-2xl font-black text-slate-900 leading-tight mb-2"></h2>
-            <p id="m-date" class="text-blue-600 font-bold mb-8"></p>
-            
-            <div class="space-y-6 border-t border-slate-100 pt-8">
-                <div class="flex gap-4">
-                    <div class="mt-1">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Destination</label>
-                        <p id="m-loc" class="text-slate-700 font-semibold"></p>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="closeModal()" class="w-full mt-10 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl active:scale-[0.98]">
-                Close Explorer
-            </button>
         </div>
     </div>
 
     <script>
-        /**
-         * GLOBAL STATE & CONSTANTS
-         */
         let calendar;
-        const DEFAULT_TRIP_START = '2026-06-22';
+        const debugEl = document.getElementById('debug-log');
 
-        /**
-         * UTILITY: getSafeUrl
-         */
-        function getSafeUrl(rawUrl) {
-            if (!rawUrl) return '';
-            const cleanUrl = rawUrl.trim().replace('webcal://', 'https://');
-            return 'https://corsproxy.io/?' + encodeURIComponent(cleanUrl);
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            debugEl.innerHTML += `<div>[${time}] ${msg}</div>`;
+            debugEl.scrollTop = debugEl.scrollHeight;
         }
 
-        /**
-         * CALENDAR INITIALIZATION
-         */
+        function toggleDebug() { debugEl.classList.toggle('hidden'); }
+
+        function getProxiedUrl(rawUrl) {
+            const cleanUrl = rawUrl.trim().replace('webcal://', 'https://');
+            return `https://api.allorigins.win/raw?url=${encodeURIComponent(cleanUrl)}&t=${Date.now()}`;
+        }
+
         function initCalendar() {
             const calendarEl = document.getElementById('calendar');
-            if (!calendarEl || typeof FullCalendar === 'undefined') return;
+            if (typeof FullCalendar === 'undefined' || !FullCalendar.Calendar) {
+                setTimeout(initCalendar, 200);
+                return;
+            }
 
-            try {
-                const plugins = [];
-                if (FullCalendar.iCalendarPlugin) {
-                    plugins.push(FullCalendar.iCalendarPlugin);
-                }
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+                initialView: 'resourceTimeGridDay',
+                
+                // --- FOCUS SETTINGS ---
+                initialDate: '2026-06-25', // Start focus on June 25th
+                validRange: {
+                    start: '2026-06-25',
+                    end: '2026-07-13' // End of July 12th (exclusive, so we set to 13th)
+                },
+                // ----------------------
 
-                calendar = new FullCalendar.Calendar(calendarEl, {
-                    plugins: plugins,
-                    initialView: 'dayGridMonth',
-                    initialDate: DEFAULT_TRIP_START,
-                    
-                    headerToolbar: false, // Custom toolbar handles navigation
-                    dayHeaders: true,
-                    firstDay: 1, 
-                    
-                    events: {
-                        url: getSafeUrl(document.getElementById('cal-url').value),
-                        format: 'ics'
+                resources: [
+                    { id: 'transp', title: 'Transportation', eventColor: '#3b82f6' },
+                    { id: 'stay', title: 'Lodging / Stay', eventColor: '#10b981' },
+                    { id: 'activity', title: 'Activities', eventColor: '#f59e0b' },
+                    { id: 'other', title: 'Miscellaneous', eventColor: '#64748b' }
+                ],
+                headerToolbar: { 
+                    left: 'prev,next today', 
+                    center: 'title', 
+                    right: 'dayGridMonth,resourceTimeGridDay' 
+                },
+                eventDataTransform: function(eventData) {
+                    const title = (eventData.title || "").toLowerCase();
+                    if (/flight|train|drive|car|uber|taxi|transport|shuttle/.test(title)) eventData.resourceId = 'transp';
+                    else if (/hotel|airbnb|stay|check|lodging|hostel/.test(title)) eventData.resourceId = 'stay';
+                    else if (/tour|visit|dinner|lunch|museum|sightseeing|activity|reservation/.test(title)) eventData.resourceId = 'activity';
+                    else eventData.resourceId = 'other';
+                    return eventData;
+                },
+                events: {
+                    url: getProxiedUrl(document.getElementById('cal-url').value),
+                    format: 'ics',
+                    success: function(events) {
+                        log(`Synced ${events.length} trip events.`);
                     },
-                    
-                    eventClick: function(info) {
-                        showDetails(info.event);
-                    },
-                    
-                    loading: function(isLoading) {
-                        toggleLoader(isLoading);
+                    failure: function() {
+                        log("Sync Failed. Check connection or link validity.");
                     }
-                });
+                },
+                loading: (isLoading) => {
+                    document.getElementById('load-spinner').classList.toggle('hidden', !isLoading);
+                },
+                slotMinTime: "06:00:00",
+                slotMaxTime: "24:00:00",
+                height: 'auto',
+                nowIndicator: true,
+                allDaySlot: true
+            });
 
-                calendar.render();
-            } catch (e) {
-                console.error("Calendar Engine Error:", e);
-                setTimeout(initCalendar, 1000);
-            }
+            calendar.render();
+            log("Calendar Initialized (Range Restricted).");
         }
 
-        /**
-         * VIEW CONTROLS
-         */
         function changeView(viewName) {
-            if (!calendar) return;
             calendar.changeView(viewName);
-            
-            // Toggle button styles
-            const isGrid = viewName === 'dayGridMonth';
-            const gridBtn = document.getElementById('btn-grid');
-            const listBtn = document.getElementById('btn-list');
-            
-            if (isGrid) {
-                gridBtn.className = "view-btn bg-white shadow-sm text-blue-600 font-bold py-2 rounded-xl text-xs transition-all";
-                listBtn.className = "view-btn text-slate-500 font-bold py-2 rounded-xl text-xs transition-all hover:bg-white/50";
-            } else {
-                listBtn.className = "view-btn bg-white shadow-sm text-blue-600 font-bold py-2 rounded-xl text-xs transition-all";
-                gridBtn.className = "view-btn text-slate-500 font-bold py-2 rounded-xl text-xs transition-all hover:bg-white/50";
-            }
+            const isResource = viewName === 'resourceTimeGridDay';
+            document.getElementById('btn-resource').className = isResource ? "px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm" : "px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-slate-50";
+            document.getElementById('btn-month').className = !isResource ? "px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm" : "px-3 py-1.5 text-xs font-bold rounded-lg hover:bg-slate-50";
         }
 
-        function changeFocus() {
-            const date = document.getElementById('focus-view').value;
-            if (calendar) {
-                calendar.gotoDate(date);
-            }
-        }
-
-        function gotoCustomDate() {
-            const date = document.getElementById('custom-focus').value;
-            if (calendar && date) {
-                calendar.gotoDate(date);
-            }
-        }
-
-        /**
-         * UI ACTIONS: showDetails
-         */
-        function showDetails(event) {
-            const options = { weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('m-title').innerText = event.title;
-            document.getElementById('m-date').innerText = event.start.toLocaleDateString('en-US', options);
-            document.getElementById('m-loc').innerText = event.extendedProps.location || 'Location to be confirmed';
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
-
-        /**
-         * UI ACTIONS: toggleLoader
-         */
-        function toggleLoader(isLoading) {
-            const icon = document.getElementById('load-icon');
-            const spinner = document.getElementById('load-spinner');
-            if(icon) icon.classList.toggle('hidden', isLoading);
-            if(spinner) spinner.classList.toggle('hidden', !isLoading);
-        }
-
-        /**
-         * APP ACTIONS: updateSource
-         */
         function updateSource() {
             const url = document.getElementById('cal-url').value;
-            if (!calendar || !url) return;
-            
-            const safeUrl = getSafeUrl(url);
             calendar.getEventSources().forEach(s => s.remove());
-            calendar.addEventSource({
-                url: safeUrl,
-                format: 'ics'
-            });
+            calendar.addEventSource({ url: getProxiedUrl(url), format: 'ics' });
+            log("Feed updated.");
         }
 
-        function refreshCalendar() {
-            if (calendar) calendar.refetchEvents();
-        }
+        function refreshCalendar() { calendar.refetchEvents(); }
 
-        function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-        }
-
-        function generateItinerary() {
-            console.info("AI Analysis: Summarizing trip events...");
-        }
-
-        window.addEventListener('load', () => {
-            setTimeout(initCalendar, 200);
-        });
+        window.onload = initCalendar;
     </script>
 </body>
 </html>
